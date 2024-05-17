@@ -14,13 +14,11 @@ gym.register('MiniGrid-FourRooms-v1', FourRoomsEnv)
 with open('fourrooms_train_config.pl', 'rb') as file:
     train_config = dill.load(file)
 
-environment_count = 20
-runs_per_environment = 2
 env = gym_wrapper(gym.make('MiniGrid-FourRooms-v1',
-                           agent_pos=train_config['agent positions'][:environment_count],
-                           goal_pos=train_config['goal positions'][:environment_count],
-                           doors_pos=train_config['topologies'][:environment_count],
-                           agent_dir=train_config['agent directions'][:environment_count]))
+                           agent_pos=train_config['agent positions'],
+                           goal_pos=train_config['goal positions'],
+                           doors_pos=train_config['topologies'],
+                           agent_dir=train_config['agent directions']))
 
 # number of episodes and steps per episode
 chance_to_choose_optimal = 0
@@ -39,25 +37,23 @@ def optimal_policy(state):
     optimal_action = np.argmax(q_values)
     return optimal_action
 
+    # generate episodes
+state, _ = env.reset()
+action = optimal_policy(state)
+while True:
+    action = env.action_space.sample()
+    next_state, reward, terminated, truncated, _ = env.step(action)
 
-# generate episodes
-for _ in range(environment_count):
-    for _ in range(runs_per_environment):
-        state, _ = env.reset()
-        action = optimal_policy(state)
-        while True:
-            action = env.action_space.sample()
-            next_state, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
+    states.append(state.flatten())
+    actions.append(action)
+    rewards.append(reward)
+    terminal_flags.append(done)
 
-            done = terminated or truncated
-            states.append(state.flatten())
-            actions.append(action)
-            rewards.append(reward)
-            terminal_flags.append(done)
+    state = next_state
+    if done:
+        break
 
-            state = next_state
-            if done:
-                break
 
 # convert lists to numpy arrays
 states = np.array(states)

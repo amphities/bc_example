@@ -21,8 +21,8 @@ bc = d3rlpy.algos.DiscreteBCConfig(
 
 bc.fit(
     dataset,
-    n_steps=5000,
-    n_steps_per_epoch=250,
+    n_steps=50000,
+    n_steps_per_epoch=1000
 )
 
 bc.save('bc_random.d3')
